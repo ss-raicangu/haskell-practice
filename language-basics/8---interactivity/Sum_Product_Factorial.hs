@@ -24,4 +24,3 @@ main = do
     putStrLn("The sum is " ++ show(foldl (+) 0 numbers))
     putStrLn("The product is " ++ show(foldl (*) 1 numbers))
     forM_ numbers printFactorial
-

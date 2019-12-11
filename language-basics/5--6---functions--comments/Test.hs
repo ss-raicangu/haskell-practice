@@ -46,4 +46,3 @@ roots a b c =
 non_infix_sum a b = (+) a b
 
 infix_map func (x:xs) = func `map` (x:xs)
-

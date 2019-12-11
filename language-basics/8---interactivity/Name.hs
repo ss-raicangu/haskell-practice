@@ -8,4 +8,3 @@ main = do
     putStrLn "Please enter your name: "
     name <- getLine                                      -- Using the arrow shows that getLine is not a pure function and can return different values.
     putStrLn ("Hello, " ++ name ++ ", how are you?")
-

@@ -23,4 +23,3 @@ doGuessing num = do
           putStrLn "Too high!"
           doGuessing num
         else do putStrLn "You Win!"
-

@@ -117,4 +117,3 @@ showFactorials (x:xs) = do
 
 factorial 1 = 1
 factorial n = n * factorial (n-1)
-

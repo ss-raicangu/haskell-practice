@@ -18,4 +18,3 @@ We've seen that multiplication binds more tightly than addition. Can you think o
 =======================================================
 
 Therefore, function applications bind tighter than multiplication.
-

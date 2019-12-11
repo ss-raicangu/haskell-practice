@@ -20,4 +20,3 @@ Did not need to use the fully qualified name for the square function or the 'f' 
 =====================================================================================
 
 Included the comments section in here since it is not a big section.
-

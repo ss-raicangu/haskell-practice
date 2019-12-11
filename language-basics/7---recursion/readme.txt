@@ -73,4 +73,3 @@ Define a recursive function my_map that behaves identically to the standard func
 `````````````````````````````````````````````````````````````````````````````````````````
 my_map _ [] = []
 my_map func (x:xs) = func x : my_map func xs
-

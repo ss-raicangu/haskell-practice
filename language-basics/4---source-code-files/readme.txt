@@ -11,4 +11,3 @@ Loaded the Main module to use interactively---ghci Test.hs
 ----------------------------------------
  ghc --make Test.hs -o test.exe
 ========================================
-

@@ -35,4 +35,3 @@ mult a b =
 
 my_map _ [] = []
 my_map func (x:xs) = func x : my_map func xs
-
