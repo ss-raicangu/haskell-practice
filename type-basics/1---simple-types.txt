@@ -1,0 +1,47 @@
+=====================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_basics#Simple_Types
+-------------------------------------------------------------------------------------
+ Accessed at 2019-11-30T07:04
+=====================================================================================
+
+
+
+
+__________________________________________________________________________________________________________________________________________________
+Figure out for yourself, and then verify the types of the following expressions, if they have a type. Also note if the expression is a type error:
+
+  1. 'h':'e':'l':'l':'o':[]
+  2. [5,'a']
+  3. (5,'a')
+  4. (5::Int) + 10
+  5. (5::Int) + (10::Double)
+``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+=================================================
+ Guesses
+-------------------------------------------------
+ CORRECT              1. [Char]
+ CORRECT              2. Error. Invalid Type.
+ SLIGHTLY WRONG       3. (Num a => a, Char)
+ SLIGHTLY CORRECT     4. Int => Int => Int
+ WRONG                5. Int => Double => Double
+=================================================
+
+=======================================================================
+ Actual
+-----------------------------------------------------------------------
+ 1. 'h':'e':'l':'l':'o':[] :: [Char]
+
+ 2. <interactive>:1:2: error:
+        * No instance for (Num Char) arising from the literal `5'
+        * In the expression: 5
+          In the expression: [5, 'a']
+
+ 3. (5,'a') :: Num a => (a, Char)
+
+ 4. (5::Int) + 10 :: Int
+
+ 5. <interactive>:1:13: error:
+        * Couldn't match expected type `Int' with actual type `Double'
+        * In the second argument of `(+)', namely `(10 :: Double)'
+          In the expression: (5 :: Int) + (10 :: Double)
+=======================================================================
