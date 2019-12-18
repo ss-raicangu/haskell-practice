@@ -1,0 +1,25 @@
+==============================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Io#The_IO_Library
+------------------------------------------------------------------------------
+ Accessed at 2019-12-17T08:43:26
+==============================================================================
+
+
+
+The     h*     variants (e.g.     hPutStrLn)     of the IO actions work on files. The plain variants (e.g.     putStrLn)     work on the standard streams.
+The     brackets     function is used to perform actions safely. E.g. using the     brackets     function ensures that an opened file is always closed at the end of an action, regardless of errors. It takes three arguments: starting action, ending action, and main/middle action.
+
+
+
+======================================================================================================================================================================================================================================================================================================================================
+ Example of the usage of the     brackets     function
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ writeChar :: FilePath -> Char -> IO ()
+ writeChar fp c =
+     bracket
+       (openFile fp ReadMode)
+       hClose
+       (\h -> hPutChar h c)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Explanation     Creates a function     writeChar     that takes two arguments: a     String     detailing the filepath, and a     Char.     It then opens a file at this filepath, writes a character to it, and closes the file. If the program encounters an error, it will still close the file and re-raise the exception later.
+======================================================================================================================================================================================================================================================================================================================================
