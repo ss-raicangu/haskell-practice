@@ -1,0 +1,79 @@
+============================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Modules#Exports
+----------------------------------------------------------------------------
+ Accessed at 2019-12-19T20:08:52+1300
+============================================================================
+
+
+
+Modules help separate our code, allowing re-usability with other programs if necessary.
+
+================================================
+ A skeleton example of a module for a card game
+------------------------------------------------
+ module Cards
+     where
+
+ data Card = ...
+ data Deck = ...
+
+ newDeck :: ... -> Deck
+ newDeck = ...
+
+ shuffle :: ... -> Deck -> Deck
+ shuffle = ...
+
+ -- 'deal deck n' deals 'n' cards from 'deck'
+ deal :: Deck -> Int -> [Card]
+ deal deck n = dealHelper deck n []
+
+ dealHelper = ...
+================================================
+
+
+
+This     Cards     module can be used for multiple card games such as Blackjack, Poker etc. However, we don't want to give users access to functions such as     dealHelper.     Therefore, we need to limit what functions users can use.
+
+=======================================================================================================================================================================================
+ Example of limited function exporting
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ module Cards ( Card(),
+                Deck(),
+                newDeck,
+                shuffle,
+                deal
+              )
+     where
+
+ ...
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Here, the empty parentheses indicate that we are exporting the type but not the constructors. Meaning users can use objects of type     Card     but won't be able to construct them.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ ====================================================
+  To include specific constructors, do this.
+ ----------------------------------------------------
+  module Cards ( Card(Card),
+                 Suit(Hearts,Spades,Diamonds,Clubs),
+                 Face(Jack,Queen,King,Ace,Number),
+                 ...
+               )
+      where
+
+  ...
+ ====================================================
+
+
+
+ =======================================
+  To include all constructors, do this.
+ ---------------------------------------
+  module Cards ( Card(..),
+                 Suit(..),
+                 Face(..),
+                 ...
+               )
+      where
+  
+  ...
+ =======================================
+=======================================================================================================================================================================================

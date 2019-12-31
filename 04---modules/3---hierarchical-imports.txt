@@ -1,0 +1,10 @@
+=========================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Modules#Hierarchical_Imports
+-----------------------------------------------------------------------------------------
+ Accessed at 2019-12-19T21:10:05+1300
+=========================================================================================
+
+
+
+Can put Haskell modules in sub-directories to make the Haskell project folder cleaner. These modules can be imported by including the subdirectory names in the module definition (e.g. a module in the "Cards" subdirectory can be defined as such "Cards.xxx" to import it hierarchically).
+Can import using the module name and use a shorter imported name using the "as" keyword.

@@ -1,0 +1,44 @@
+============================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Modules#Imports
+----------------------------------------------------------------------------
+ Accessed at 2019-12-19T20:53:57+1300
+============================================================================
+
+
+
+======================================================================================
+ To import everything from another module     (Cards)     into our module     (Poker)
+--------------------------------------------------------------------------------------
+ module Poker
+     where
+
+ import Cards
+======================================================================================
+
+
+
+Functions can be referred to by base name (e.g.     newDeck)     or by explicitly specifying the import location (e.g.     Cards.newDeck).     If two modules have functions or types of the same name, you must import one of the modules qualified, meaning the functions and types in that module must be referred to explicitly (e.g.     Cards.newDeck).
+
+=============================
+ Example of qualified import
+-----------------------------
+ import qualified Cards
+=============================
+
+
+
+Can also selectively import necessary functions from different modules to avoid name conflicts. Can also selectively choose not to import a function from a module.
+
+===========================================================
+ Example of [hiding | not importing] a function definition
+-----------------------------------------------------------
+ import Cards hiding (deal)
+===========================================================
+
+
+
+=========================================
+ Example of using an alias for an import
+-----------------------------------------
+ import qualified Cards as C
+=========================================
