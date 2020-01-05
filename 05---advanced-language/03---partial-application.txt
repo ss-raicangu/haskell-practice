@@ -1,0 +1,159 @@
+==================================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Partial_Application
+--------------------------------------------------------------------------------------------------
+ Accessed at 2019-12-31T19:52:30+1300
+==================================================================================================
+
+
+
+Partial application is when the number of arguments given to a function is less than the number required by the function. E.g.,     (+2)     is a partial application of the     (+)     function. Also called "eta reduction".
+
+=======================================================================================
+ Examples
+---------------------------------------------------------------------------------------
+ lcaseString s = map toLower s     is full application of the        map     function.
+ lcaseString = map toLower         is partial application of the     map     function.
+=======================================================================================
+
+
+
+This is possible due to the type of functions, which return more functions when an incomplete list of arguments is given.
+
+====================================================================================================================================
+ Example
+------------------------------------------------------------------------------------------------------------------------------------
+ The type of     map     is     (a -> b) -> ([a] -> [b]).
+------------------------------------------------------------------------------------------------------------------------------------
+ If we supply the     toLower     function to the     map     function, the returning function is of the type     [Char] -> [Char].
+====================================================================================================================================
+
+
+
+Multiple functions can also be combined using the function composition operator     "."     to use eta reduction.
+
+=================================================================================================================================================================================================================
+ Example
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ lcaseLetters = map toLower . filter isAlpha
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ This is combining the     map toLower     and     filter isAlpha     functions to allow the     lcaseLetters     function to make all characters in a string lower-case and remove non-alphanumeric characters.
+=================================================================================================================================================================================================================
+
+
+
+This style of programming is called point-free programming. Can be understood by thinking of the argument given to the     lcaseLetters     function as a point on which it operates.
+
+
+
+A function similar to function composition is the "function application"     ($)     function.
+
+=========================================================================================================
+ Example of usage
+---------------------------------------------------------------------------------------------------------
+ foo x y = bar y (baz (fluff (ork x)))     can be rewritten as     foo x y = bar y $ baz $ fluff $ ork x
+ putStrLn "5+3=" ++ show (5+3)             can be rewritten as     putStrLn $ "5+3=" ++ show (5+3)
+=========================================================================================================
+
+
+
+=====================================================
+ Another example of the point-free programming style
+-----------------------------------------------------
+ fstGt0 l = filter (\ (a,b) -> a>0) l
+ fstGt0   = filter (\ (a,b) -> a>0)
+ fstGt0   = filter (\x -> fst x > 0)
+ fstGt0   = filter (\x -> ((>0) . fst) x)
+ fstGt0   = filter ((>0) . fst)
+=====================================================
+
+
+
+Converting to point-free programming style is not always clearer.
+
+====================================================================================================================================================================
+ Example of ambiguity
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ foo = map (\x -> sqrt (3+4*(x^2)))
+ foo = map (sqrt . (3+) . (4*) . (^2))
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The first function definition is significantly easier to understand than the second function definition as it explicitly shows where the argument will be applied.
+====================================================================================================================================================================
+
+
+
+There are some functions which are useful for point-free programming, e.g.,     uncurry,     curry,     and     flip.     The     uncurry     function takes a function of type     a -> b -> c     and converts it into a function of type     (a,b) -> c.     The     curry     function does the exact opposite. The     flip     function converts a function of type     a -> b -> c     to a function of type     b -> a -> c.     Essentially it flips the arguments in two-argument functions.
+
+==========================================================================================
+ Examples of the use of these functions
+------------------------------------------------------------------------------------------
+ map (uncurry (*)) [(1,2),(3,4),(5,6)]
+ List.sortBy (flip compare) [5,1,8,3]
+------------------------------------------------------------------------------------------
+ The first function multiplies each pair together and returns a list of all the products.
+------------------------------------------------------------------------------------------
+ The second function returns the same list in descending order.
+==========================================================================================
+
+
+
+Not all functions can be written in the point-free style.
+
+============================================================
+ Examples of functions that cannot be written in point-free
+------------------------------------------------------------
+ square x = x*x
+------------------------------------------------------------
+ A way it can be written in point-free style is
+
+ pair x = (x,x)
+ square = uncurry (*) . pair
+============================================================
+
+
+
+
+___________________________________________________________________
+
+Convert the following functions into point-free style, if possible.
+
+  func1 x l = map (\y -> y*x) l
+
+  func2 f g l = filter f (map g l)
+
+  func3 f l = l ++ map f l
+
+  func4 l = map (\y -> y+2)
+                (filter (\z -> z `elem` [1..10])
+                        (5:l))
+
+  func5 f l = foldr (\x y -> f (y,x)) 0 l
+
+```````````````````````````````````````````````````````````````````
+-- The point on which function 1 is operating on is the list.
+func1 x = map (*x)
+
+-- The point on which function 2 is operating on is the list.
+func2 f g = (filter f . map g)
+
+-- Function 3 cannot be made into point-free style.
+
+-- The point on which function 4 is operating on is the list.
+func4 = (map (+2) . filter (`elem` [1..10]) . ((:) 5))
+
+-- Function 5 cannot be made into point-free style.
+
+
+
+===========================================================================================
+ Actual Solutions
+-------------------------------------------------------------------------------------------
+ CORRECT                                 func1 x = map (*x)
+
+ CORRECT                                 func2 f g = filter f . map g
+
+ CORRECT                                 func3 cannot be made into point-free style.
+
+ CORRECT | Syntactically Different |     func4 = map (+2) . filter (`elem` [1..10]) . (5:)
+
+ WRONG                                   func5 = flip foldr 0 . flip . curry
+===========================================================================================

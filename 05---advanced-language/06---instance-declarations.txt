@@ -1,0 +1,230 @@
+====================================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Instance_Declarations
+----------------------------------------------------------------------------------------------------
+ Accessed at 2020-01-01T17:05:29+1300
+====================================================================================================
+
+
+
+Related to classes. Seems to be about making a data type work with a class, i.e., data types can be instances of a class. There are multiple classes already defined in the Prelude.
+
+
+
+A minimal complete definition is the functions which must be defined for the class's definition to be satisfied.
+
+
+
+Using the following data type in all following instance examples.
+
+===============================================
+ data Color
+     = Red
+     | Orange
+     | Yellow
+     | Green
+     | Blue
+     | Purple
+     | White
+     | Black
+     | Custom Int Int Int  -- R G B components
+===============================================
+
+
+
+
+___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+                                                                                                                             Eq class
+```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Used to check whether two arbitrary values are equal. Implementing any one of these functions makes this a minimal complete definition. By implementing one function, the other function can achieve its value by simply negating the implemented function's value.
+
+==========================================================
+ Example of declaring an instance of the     Eq     class
+----------------------------------------------------------
+ (==) :: Eq a => a -> a -> Bool
+ (/=) :: Eq a => a -> a -> Bool
+----------------------------------------------------------
+ instance Eq Color where
+     Red == Red = True
+     Orange == Orange = True
+     Yellow == Yellow = True
+     Green == Green = True
+     Blue == Blue = True
+     Purple == Purple = True
+     White == White = True
+     Black == Black = True
+     (Custom r g b) == (Custom r' g' b') =
+         r == r' && g == g' && b == b'
+     _ == _ = False
+==========================================================
+
+
+
+
+_____________________________________________________________________________________________________________________________________________________________________________
+                                                                                 Show class
+`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Used to display arbitrary values as strings. Implementing either the     show     function or the     showPrec     function makes the instance a minimal complete definition.
+
+============================================================
+ Example of declaring an instance of the     Show     class
+------------------------------------------------------------
+ show :: Show a => a -> String
+ showsPrec :: Show a => Int -> a -> String -> String
+ showList :: Show a => [a] -> String -> String
+------------------------------------------------------------
+ instance Show Color where
+     show Red = "Red"
+     show Orange = "Orange"
+     show Yellow = "Yellow"
+     show Green = "Green"
+     show Blue = "Blue"
+     show Purple = "Purple"
+     show White = "White"
+     show Black = "Black"
+     show (Custom r g b) =
+         "Custom " ++ show r ++ " " ++
+         show g ++ " " ++ show b
+============================================================
+
+
+
+
+__________________________________________________________________________________________________________________________________________________________________________________________________________________________
+                                                                                                        Ord class
+``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Used to compare arbitrary values. Implementing any one of these functions makes this a minimal complete definition. However, if implementing only one function, then it is wise to implement the     compare     function.
+
+===========================================================================================
+ Definition of the     Ord     class
+-------------------------------------------------------------------------------------------
+ compare :: Ord a => a -> a -> Ordering
+ (<=) :: Ord a => a -> a -> Bool
+ (>) :: Ord a => a -> a -> Bool
+ (>=) :: Ord a => a -> a -> Bool
+ (<) :: Ord a => a -> a -> Bool
+ min :: Ord a => a -> a -> a
+ max :: Ord a => a -> a -> a
+-------------------------------------------------------------------------------------------
+ The     compare     function returns a value of type     Ordering     which is defined as
+
+ data Ordering = LT | EQ | GT
+===========================================================================================
+
+
+
+Since     Ord     is a subclass of     Eq,     the type must be declared an instance of     Eq     before it can be declared an instance of     Ord.
+
+
+
+
+________________________________________________________________________________________________________________________________________________________________________________
+                                                                                   Enum class
+````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Used for enumerated types, i.e., for types which have a predecessor and a successor. A minimal complete definition can be given by defining the     toEnum     and     fromEnum.
+
+================================================
+ Definition of the     Enum     class
+------------------------------------------------
+ pred :: Enum a => a -> a
+ succ :: Enum a => a -> a
+ toEnum :: Enum a => Int -> a
+ fromEnum :: Enum a => a -> Int
+ enumFrom :: Enum a => a -> [a]
+ enumFromThen :: Enum a => a -> a -> [a]
+ enumFromTo :: Enum a => a -> a -> [a]
+ enumFromThenTo :: Enum a => a -> a -> a -> [a]
+================================================
+
+
+
+
+____________________________________________
+                 Num class
+````````````````````````````````````````````
+Used for the standard arithmetic operations.
+
+======================================
+ Definition of the     Num     class
+--------------------------------------
+ (-) :: Num a => a -> a -> a
+ (*) :: Num a => a -> a -> a
+ (+) :: Num a => a -> a -> a
+ negate :: Num a => a -> a
+ signum :: Num a => a -> a
+ abs :: Num a => a -> a
+ fromInteger :: Num a => Integer -> a
+======================================
+
+
+
+
+________________________________________________________________________________________________________________________________________________________
+                                                                      Read class
+````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Used to take a string and read a value of an arbitrary type. The     readsPrec     function needs to defined to make this a minimal complete definition.
+
+=======================================================
+ Definition of the     Read     class
+-------------------------------------------------------
+ readsPrec :: Read a => Int -> String -> [(a, String)]
+ readList :: String -> [([a], String)]
+=======================================================
+
+
+
+The most important function necessary to read a value is called     read,     which uses the     readsPrec     function as follows.
+
+=====================================
+ read s = fst (head (readsPrec 0 s))
+=====================================
+
+
+
+
+________________________________________________________________________________________________________________________________________________________
+                                                                     Class Contexts
+````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+To declare the     Maybe     data type as an instance of the     Eq     class, we need to know whether     a     is an instance of the     Eq     class.
+
+=====================================
+ data Maybe a = Nothing
+              | Just a
+-------------------------------------
+ instance Eq a => Eq (Maybe a) where
+     Nothing == Nothing = True
+     (Just x) == (Just x') = x == x'
+=====================================
+
+
+
+
+________________________________________________________________________________________________________________________________________________________________________________
+                                                                                Deriving Classes
+````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+The basic classes can be automatically derived for simple data types, which are most data types except for fixed point types. This is done by using the     deriving     clause.
+
+===============================================
+ Example of deriving classes
+-----------------------------------------------
+ data Color
+     = Red
+     | ...
+     | Custom Int Int Int  -- R G B components
+     deriving (Eq, Ord, Show, Read)
+===============================================
+
+
+
+This can also be done by data types which use arguments, for which the compiler only derives classes when appropriate.
+
+============================================================
+ Example of deriving classes for a data type with arguments
+------------------------------------------------------------
+ data Maybe a = Nothing
+              | Just a
+              deriving (Eq, Ord, Show, Read)
+============================================================
+
+
+
+We can only derive instances from the     Eq,     Ord,     Enum,     Bounded,     Show,     and     Read     classes.

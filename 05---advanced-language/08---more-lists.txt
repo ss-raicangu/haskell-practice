@@ -1,0 +1,144 @@
+=========================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#More_Lists
+-----------------------------------------------------------------------------------------
+ Accessed at 2020-01-02T21:05:04+1300
+=========================================================================================
+
+
+
+
+_________________________________________________________________________________________________________________________________________________________________________________________________________________________
+                                                                                                 Standard List Functions
+`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+Haskell has a pre-defined List data type in the Prelude. In addition to the     map,     filter,     foldr,     and     foldl     functions, there are two more functions which can operate on lists:     zip,     unzip.
+
+
+
+The     zip     function merges two lists together. It stops at the shorter list.
+
+======================================================
+ Example of the     zip     function
+------------------------------------------------------
+ Input      zip "hello" [1,2,3,4,5]
+ Output     [('h',1),('e',2),('l',3),('l',4),('o',5)]
+======================================================
+
+
+
+The     unzip     function "unmerges" a list, by taking a zipped list and returning two separate lists.
+
+============================================
+ Example of the     unzip     function
+--------------------------------------------
+ Input      unzip [('f',1),('o',2),('o',3)]
+ Output     ("foo",[1,2,3])
+============================================
+
+
+
+There are more than two un/zipping functions. These have numbers suffixed to them (starting from 3).
+
+============================================
+ Examples of more un/zipping functions
+--------------------------------------------
+ zip3     unzip3     Returns in triples.
+ zip4     unzip4     Returns in quadruples.
+ ...
+============================================
+
+
+
+Two more functions that can be used on a list are:     take,     drop.     These are essentially list splitting functions.
+
+================================
+ Examples of     take,     drop
+--------------------------------
+ Input      take 4 "hello"
+ Output     "hell"
+--------------------------------
+ Input      drop 4 "hello"
+ Output     "o"
+================================
+
+
+
+If the first argument (the integer) is too long, it simply returns either the full list     (take)     or an empty list     (drop).     Hence, these functions never produce errors.
+
+
+
+
+_
+List Comprehensions
+`
+If the list elements are an instance of the     Enum     class, there is some syntactic sugar.
+
+=========================================================
+ Example of syntactic sugar on     Int    -type elements
+---------------------------------------------------------
+ Input      [1..10]
+ Output     [1,2,3,4,5,6,7,8,9,10]
+---------------------------------------------------------
+ Input      [1,3..10]
+ Output     [1,3,5,7,9]
+---------------------------------------------------------
+ Input      [1,4..10]
+ Output     [1,4,7,10]
+=========================================================
+
+
+
+The syntactic sugar shown above is shorthand for     enumFromTo     (the normal version) and     enumFromThenTo     (the step version). An upper bound is optional but this will produce an infinite list, so be careful. Since Haskell is lazy, these infinite lists are still well-formed. Printing the entire list is troublesome but can only print a segment by using the aforementioned     take,      drop     functions.
+
+===============================================================================================================================================
+ Examples of where an infinite list is useful
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ assignID :: [a] -> [(a,Int)]
+ assignID l = zip l [1..length l]
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ Here, the list would be traversed twice. To make it more efficient using Haskell's laziness, the following function produces the same output:
+
+ assignID l = zip l [1..]
+===============================================================================================================================================
+
+
+
+Based on the set-builder notation, we can also have syntactic sugar for the     map,     filter     functions.
+
+================================================================
+ Examples of the syntactic sugar for     map,     filter
+----------------------------------------------------------------
+ map toLower (filter toUpper "Hello World")
+----------------------------------------------------------------
+ [toLower x | x <- "Hello World", isUpper x]
+----------------------------------------------------------------
+ Both functions are equivalent and produce the output     "hw".
+================================================================
+
+
+
+Using list comprehension can make some potentially hard-to-read code much easier to write/maintain.
+
+==============================================================================================================
+ Example of where list comprehension is useful
+--------------------------------------------------------------------------------------------------------------
+ [(x,y) | x <- [1..5], y <- [x..7]]
+--------------------------------------------------------------------------------------------------------------
+ The above produces a list of points between (0,0) and (5,7) below the diagonal.
+
+ 7.0 -|                  x.
+ 6.3 -|                ....
+ 5.6 -|              x.....
+ 4.9 -|            ........
+ 4.2 -|          x.........
+ 3.5 -|        ............
+ 2.8 -|      x.............
+ 2.1 -|    ................
+ 1.4 -|  x.................
+ 0.7 -| ...................
+      x --- --- --- --- ---
+ (0,0)   1   2   3   4   5
+--------------------------------------------------------------------------------------------------------------
+ So, basically points in that shaded regions where both (x,y) are integers. Maybe.
+--------------------------------------------------------------------------------------------------------------
+ If the order of     x <- [1..5], y <- [x..7]     is reversed, then     y      can no longer depend on     x.
+==============================================================================================================

@@ -1,0 +1,9 @@
+===============================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Pattern_Matching
+-----------------------------------------------------------------------------------------------
+ Accessed at 2020-01-01T03:05:13+1300
+===============================================================================================
+
+
+
+Lowercase letters are wildcards, which can bind to any value. The underscore character     "_"     is another wildcard character which doesn't bind to any value. Both wildcards will match anything. Can only match against datatypes, not functions.

@@ -1,0 +1,182 @@
+======================================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#The_Final_Word_on_Lists
+------------------------------------------------------------------------------------------------------
+ Accessed at 2020-01-04T16:08:19+1300
+======================================================================================================
+
+
+
+Lists are incredibly important to any functional language, including Haskell.
+
+
+
+foldr     is an incredibly powerful function that is able to compute primitive recursive functions. A primitive recursive function are functions which can only be calculated using for-loops and not using while-loops.
+
+=========================================================================================================================
+ Example of defining     map     in terms of     foldr
+-------------------------------------------------------------------------------------------------------------------------
+ map2 f = foldr (\a b -> f a : b) []
+-------------------------------------------------------------------------------------------------------------------------
+ b     is the accumulator (remaining list) and     a     is the element that the function     f     is being applied on.
+-------------------------------------------------------------------------------------------------------------------------
+ A simpler version of the same function can be achieved through eta reduction as shown below.
+
+ foldr (\a b -> (:) (f a) b) []
+ foldr (\a -> (:) (f a)) []
+ foldr (\a -> ((:) . f) a) []
+
+ map3 = foldr ((:) . f) []
+-------------------------------------------------------------------------------------------------------------------------
+ The simplified version     (map3)     is based on the fact that     foldr (:) []     is the identity function on lists.
+=========================================================================================================================
+
+
+
+A short explanation of how     foldr (:) []     is the identity function will ensue.
+
+=================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+ This function definition can be thought of as being     foldr
+
+ myfoldr [] = z
+ myfoldr (x:xs) = x `f` (myfoldr xs)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ As can be seen above, the empty list     []     is replaced by the value     z     and the construction function     (:)     is replaced by the function     f.     Therefore, when     f     is replaced with     (:)     and     z     is replaced by     [],     then the function     myfoldr     will return the same list. Finally, since     myfoldr     is essentially a copy of the     foldr     function, the partially applied function     foldr (:) []     becomes an identity function on lists.
+=================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+
+
+
+In the same way, the     filter     function can also be defined in terms of     foldr.
+
+==========================================================================================================================
+ A demonstration of how     filter     can be re-defined in terms of     foldr
+--------------------------------------------------------------------------------------------------------------------------
+ The following function is a copy of how     filter     works.
+
+ filter p [] = []
+ filter p (x:xs) =
+   if p x
+     then x : filter p xs
+   else
+     filter p xs
+--------------------------------------------------------------------------------------------------------------------------
+ Suppose the function call     (filter p xs)     is called b, the above     filter     function can be rewritten as such.
+
+ filter p [] = []
+ filter p (x:xs) = if p x then x : b else b
+--------------------------------------------------------------------------------------------------------------------------
+ This way, the     filter     function can be transformed into a fold.
+
+ filter p = foldr (\a b -> if p a then a:b else b) []
+==========================================================================================================================
+
+
+
+Another slightly more complex function that can be rewritten in terms of a fold is     (++).
+
+=======================================================================================================================================================================================================================
+ A demonstration of how     (++)     can be re-defined in terms of     foldr
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The default definition of     (++)     is:
+
+ (++) []     ys = ys
+ (++) (x:xs) ys = x : (xs ++ ys)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The first line with the empty list can be rewritten using eta reduction using the     id     (identity) function.
+
+ (++) [] = id
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The second line can be rewritten using eta reduction as well.
+
+ (++) (x:xs) ys = x : ((++) xs ys)
+ (++) (x:xs) ys = (x:) ((++) xs ys)
+ (++) (x:xs) ys = ((x:) . (++) xs) ys
+ (++) (x:xs) = (x:) . (++) xs
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Thus, an eta-reduced definition of     (++)     is
+
+ (++) [] = id
+ (++) (x:xs) = (x:) . (++) xs
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ This eta-reduced definition can be written in terms of a fold by noting that the base case converts     []     into     id     and assuming that     (++) xs     is called     b     while     x     is called     a.
+
+ (++) = foldr (\a b -> (a:) . b) id
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ This definition can also be further reduced to a point-free style, although it is less clear.
+
+ (++) = foldr (\a b -> (.) (a:) b) id
+ (++) = foldr (\a -> (.) (a:)) id
+ (++) = foldr (\a -> (.) ((:) a)) id
+ (++) = foldr (\a -> ((.) . (:)) a) id
+
+ (++) = foldr ((.) . (:)) id
+=======================================================================================================================================================================================================================
+
+
+
+Finally, another function that can be rewritten in terms of a fold is     concat.
+
+=====================================================================================================
+ A demonstration of how     concat     can be re-defined in terms of     foldr
+-----------------------------------------------------------------------------------------------------
+ The original definition is
+
+ concat []     = []
+ concat (x:xs) = x ++ concat xs
+-----------------------------------------------------------------------------------------------------
+ z     is clearly     []     and     f     is clearly     (++).     Therefore, the final function is
+
+ concat = foldr (++) []
+=====================================================================================================
+
+
+
+
+________________________________________________________________________________________________________________________________________________________________________________________
+The function 'and' takes a list of booleans and returns 'True' if and only if all of them are 'True'. It also returns 'True' on the empty list. Write this function in terms of 'foldr'.
+````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+-- A definition for the 'and' function.
+and :: [Bool] -> Bool
+and []     = True
+and (x:xs) = x && and xs
+
+-- The 'f' value in the 'foldr' function is '&&'. The 'z' value in the 'foldr' function is 'True'. Therefore, the rewritten function is
+and = foldr (&&) True
+
+
+
+
+__________________________________________________________________________________________________________________________________
+The function 'concatMap' behaves such that 'concatMap f' is the same as 'concat . map f'. Write this function in terms of 'foldr'.
+``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+-- A definition for the 'concatMap' function.
+concatMap f []     = []
+concatMap f (x:xs) = (map f x) ++ (Temp.concatMap f xs)
+
+-- Break this down using eta reduction.
+-- concatMap f (x:xs) = (++) (map f x) (Temp.concatMap f xs)
+-- concatMap f (x:xs) = 
+
+-- The 'f' value in the 'foldr' function is '++'. The 'z' value in the 'foldr' function is '[]'. Therefore, the rewritten function is
+
+-- GIVING UP! Stopping here because I cannot figure it out.
+
+
+
+=======================================================================================
+ Actual solutions
+---------------------------------------------------------------------------------------
+ Recursive definition     and [] = True
+                          and (x:xs) = x && and xs
+
+ 'foldr' definition       and = foldr (&&) True
+---------------------------------------------------------------------------------------
+ Recursive definition                    concatMap f [] = []
+                                         concatMap f (x:xs) = f x ++ concatMap f xs
+
+ 'foldr' definition                      concatMap f = foldr (\a b -> f a ++ b) []
+                                         concatMap f = foldr (\a b -> (++) (f a) b) []
+                                         concatMap f = foldr (\a -> (++) (f a)) []
+                                         concatMap f = foldr (\a -> ((++) . f) a) []
+
+ 'foldr' definition point-free style     concatMap f = foldr ((++) . f) []
+=======================================================================================

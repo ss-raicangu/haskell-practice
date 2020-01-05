@@ -1,0 +1,89 @@
+=================================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Local_Declarations
+-------------------------------------------------------------------------------------------------
+ Accessed at 2019-12-31T19:25:05+1300
+=================================================================================================
+
+
+
+Can define local variables using a     where     clause.
+
+==============================================
+ Example
+----------------------------------------------
+ roots a b c =
+     ((-b + det) / (2*a), (-b - det) / (2*a))
+     where det = sqrt(b*b-4*a*c)
+==============================================
+
+
+
+Variables declared by     where     shadow every other variables.
+
+========================================================================================================
+ Example
+--------------------------------------------------------------------------------------------------------
+ det = "Hello World"
+
+ roots a b c =
+     ((-b + det) / (2*a), (-b - det) / (2*a))
+     where det = sqrt(b*b-4*a*c)
+
+ f _ = det
+--------------------------------------------------------------------------------------------------------
+ The     det     variable in the     roots     function overshadows the top-level     det     variable.
+--------------------------------------------------------------------------------------------------------
+ The     f     function will use the top-level value of     det.
+========================================================================================================
+
+
+
+Multiple local variables can be declared using the     when     clause.
+
+============================================
+ Example
+--------------------------------------------
+ roots a b c =
+     ((-b + det) / (a2), (-b - det) / (a2))
+     where det = sqrt(b*b-4*a*c)
+           a2 = 2*a
+============================================
+
+
+
+The     where     clause is identical to the     let/in     clauses except for their placement.
+
+==============================================================
+ Examples of the differences using the     roots     function
+--------------------------------------------------------------
+ roots a b c =
+     let det = sqrt(b*b - 4*a*c)
+         a2 = 2*a
+     in ((-b + det) / a2, (-b - det) / a2)
+--------------------------------------------------------------
+ roots a b c = ((-b + det) / a2, (-b - det) / a2)
+   where
+     det = sqrt (b*b - 4*a*c)
+     a2  = 2*a
+==============================================================
+
+
+
+The     where     clause and the     let/in     clauses can be mixed. In such cases, the variables declared by     let/in     shadow the variables declared by     where.     However, this is very hard-to-read code, hence avoid if possible.
+
+===================
+ Example
+-------------------
+ f x =
+     let y = x+1
+     in  y
+     where y = x+2
+===================
+
+
+
+Using     let/in     clauses or the     where     clause is personal preference. Giving descriptive names to sub-expressions is more important.
+
+
+
+Remember that one reason to choose to use the     where     clause is that the reader can immediately see what the function does.

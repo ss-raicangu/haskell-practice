@@ -1,0 +1,106 @@
+==================================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Datatypes_Revisited
+--------------------------------------------------------------------------------------------------
+ Accessed at 2020-01-02T20:32:25+1300
+==================================================================================================
+
+
+
+We can have fields holding different values in a data type.
+
+========================================================
+ Example of a data type with named fields
+--------------------------------------------------------
+ data Configuration =
+     Configuration String          -- user name
+                   String          -- local host
+                   String          -- remote host
+                   Bool            -- is guest?
+                   Bool            -- is super user?
+                   String          -- current directory
+                   String          -- home directory
+                   Integer         -- time connected
+               deriving (Eq, Show)
+========================================================
+
+
+
+These fields can be accessed accurately using accessor functions. However, this is not a good option as adding new fields to the data type will mess up all the functions since they require a different number of arguments.
+
+=====================================================
+ Examples of accessor functions
+-----------------------------------------------------
+ getUserName (Configuration un _ _ _ _ _ _ _) = un
+ getLocalHost (Configuration _ lh _ _ _ _ _ _) = lh
+ getRemoteHost (Configuration _ _ rh _ _ _ _ _) = rh
+ getIsGuest (Configuration _ _ _ ig _ _ _ _) = ig
+=====================================================
+
+
+
+A much better option is to have named fields that will allow the compiler to automatically generate accessor functions.
+
+==============================================
+ Examples of named fields and their accessors
+----------------------------------------------
+ data Configuration =
+     Configuration { username      :: String,
+                     localhost     :: String,
+                     remotehost    :: String,
+                     isguest       :: Bool,
+                     issuperuser   :: Bool,
+                     currentdir    :: String,
+                     homedir       :: String,
+                     timeconnected :: Integer
+                   }
+----------------------------------------------
+ username :: Configuration -> String
+ localhost :: Configuration -> String
+ remotehost :: Configuration -> String
+ isguest :: Configuration -> Bool
+ issuperuser :: Configuration -> Bool
+ currentdir :: Configuration -> String
+ homedir :: Configuration -> String
+ timeconnected :: Configuration -> Integer
+==============================================
+
+
+
+Named fields also give convenient update methods. The premise is that if you have a data type     y,     a field     x,     and a new value     z,     to update the field, we write     y{x=z}.     To change more than one field in the same data type, you write     data_type{field1=new_value1, field2=new_value2, field3=new_value3}.
+
+
+
+We can also pattern match against named fields in a data type.
+
+==========================================================
+ Examples of pattern matching against named fields
+----------------------------------------------------------
+ getHostData (Configuration {localhost=lh,remotehost=rh})
+   = (lh,rh)
+==========================================================
+
+
+
+Values can be given to the named fields in two ways when initialising a data type.
+
+=================================================
+ Examples of initialising data types with values
+-------------------------------------------------
+ initCFG =
+     Configuration "nobody" "nowhere" "nowhere"
+                   False False "/" "/" 0
+ initCFG' =
+     Configuration
+        { username="nobody",
+          localhost="nowhere",
+          remotehost="nowhere",
+          isguest=False,
+          issuperuser=False,
+          currentdir="/",
+          homedir="/",
+          timeconnected=0 }
+=================================================
+
+
+
+The second way is easier to understand.

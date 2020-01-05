@@ -1,0 +1,65 @@
+===================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Maps
+-----------------------------------------------------------------------------------
+ Accessed at 2020-01-04T15:46:50+1300
+===================================================================================
+
+
+
+The     Map     data type can be used by importing the     Data.Map     module. It is a purely functional implementation of balanced trees.
+
+
+
+==========================================================
+ Comparisons of time complexity of lists, arrays and maps
+----------------------------------------------------------
+            List     Array     Map
+
+ insert     O(1)     O(n)      O(log n)
+ update     O(n)     O(n)      O(log n)
+ delete     O(n)     O(n)      O(log n)
+ find       O(n)     O(1)      O(log n)
+ map        O(n)     O(n)      O(n)
+==========================================================
+
+
+
+The type of a map is     Map k a     where     k     is the type of the keys and     a     is the type of the values. Maps are essentially lookup tables from type     k     to type     a.
+
+========================================
+ Basic map functions
+----------------------------------------
+ empty  :: Map k a
+ insert :: k -> a -> Map k a -> Map k a
+ delete :: k -> Map k a -> Map k a
+ member :: k -> Map k a -> Bool
+ lookup :: k -> Map k a -> a
+========================================
+
+
+
+Since keys must be compared, the type of the keys need to be an instance of the     Ord     class (which is a sub-class of the     Eq     class).
+
+
+
+Two more functions that can convert maps from/to lists are:     fromList,     toList.
+
+=========================================================
+ Example of using some map functions in GHCi
+---------------------------------------------------------
+ :m Data.Map
+ let mymap = fromList [('a',5),('b',10),('c',1),('d',2)]
+ let othermap = insert 'e' 6 mymap
+ toList mymap
+ toList othermap
+ Data.Map.lookup 'e' othermap
+ Data.Map.lookup 'e' mymap
+---------------------------------------------------------
+ ~~~
+ ~~~
+ ~~~
+ [('a',5),('b',10),('c',1),('d',2)]
+ [('a',5),('b',10),('c',1),('d',2),('e',6)]
+ Just 6
+ Nothing
+=========================================================

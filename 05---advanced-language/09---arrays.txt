@@ -1,0 +1,86 @@
+=====================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Language_advanced#Arrays
+-------------------------------------------------------------------------------------
+ Accessed at 2020-01-04T15:00:36+1300
+=====================================================================================
+
+
+
+Lists are bad for random-access, having average complexity O(n). Arrays trade this feature for fast insertion/deletion. These arrays can be accessed from the     Data.Array     module.
+
+
+
+There are 3 functions that can be used to create arrays once the     Data.Array     module has been imported.
+
+=============================================================================================================================================================
+ Functions used to create an array after importing the     Data.Array     module
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+ array (1,5) [(i,2*i) | i <- [1..5]]
+
+ The     array     function takes the bounds as a pair for the first argument and an association list specifying the initial values for the second argument.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+ listArray (1,5) [3,7,5,1,10]
+
+ The     listArray     function takes the bounds as a pair for the first argument and list of values for the second argument.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+ accumArray (+) 2 (1,5) [(i,i) | i <- [1..5]]
+
+ The     accumArray      function takes the accumulation function, initial value, pair of bounds, and the association list.
+=============================================================================================================================================================
+
+
+
+Arrays are always printed with an association list. The association list contains a pair of elements that constitute the     (index, value).     The     Data.Array     module also has several functions used to deal with arrays. One function to get a value using an index is     (!).
+
+===============================================
+ Example of using the     (!)     function
+-----------------------------------------------
+ Input      (listArray (1,5) [3,7,5,1,10]) ! 3
+ Output     5
+===============================================
+
+
+
+An array can also be updated using the     (//)     function.
+
+===============================================================
+ Example of using the     (//)     function
+---------------------------------------------------------------
+ Input      (listArray (1,5) [3,7,5,1,10]) // [(2,99),(3,-99)]
+ Output     array (1,5) [(1,3),(2,99),(3,-99),(4,1),(5,10)]
+===============================================================
+
+
+
+====================================================================
+ Some more functions that can be used with arrays
+--------------------------------------------------------------------
+ bounds      returns the bounds of an array
+ indices     returns a list of all indices of the array
+ elems       returns a list of all the values in the array in order
+ assocs      returns an association list for the array
+====================================================================
+
+
+
+=============================================
+ Examples of using these functions
+---------------------------------------------
+ let arr = listArray (1,5) [3,7,5,1,10]
+---------------------------------------------
+ Input      bounds arr
+ Output     (1,5)
+---------------------------------------------
+ Input      indices arr
+ Output     [1,2,3,4,5]
+---------------------------------------------
+ Input      elems arr
+ Output     [3,7,5,1,10]
+---------------------------------------------
+ Input      assocs arr
+ Output     [(1,3),(2,7),(3,5),(4,1),(5,10)]
+=============================================
+
+
+
+Arrays are O(1) when accessing but O(n) when updating since the entire array needs to be copied to maintain purity. Thus, the best use for these arrays are to fill them up once and then only read. For fast access and update, a better data type is     FiniteMap.
