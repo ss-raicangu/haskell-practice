@@ -1,0 +1,72 @@
+===================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_advanced#Newtypes
+-----------------------------------------------------------------------------------
+ Accessed at 2020-01-06T10:31:20+1300
+===================================================================================
+
+
+
+Newtypes are used to define isomorphic (structurally identical) types, e.g.,     Int     type that is ordered by even numbers first, then odd numbers instead of standard ordering.
+
+===========================================================================================================================================================================================================================================================================================================================
+ A worse way to define isomorphic types
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ data MyInt = MyInt Int
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Two problems arise with this approach:
+
+ 1. This type is not truly isomorphic to the type     Int     because it has two more values:     MyInt _|_,     _|_.     These two values represent undefined/erroneous values.     MyInt _|_     represents when the data type has an undefined value and     _|_     represents when the data type itself is undefined.
+ 2. This is also less efficient as it needs to store a pointer to an integer and follow that pointer to use the value of a     MyInt.
+===========================================================================================================================================================================================================================================================================================================================
+
+
+
+To get around these problems, we can use the     newtype     construction. This is a cross between a data type and a type synonym. It has only one constructor with one argument.
+
+===========================================================================
+ Example of constructing a     newtype
+---------------------------------------------------------------------------
+ newtype MyInt = MyInt Int
+---------------------------------------------------------------------------
+ These constructions are invalid.
+
+ newtype Bad1 = Bad1a Int | Bad1b Double     is defining two constructors.
+ newtype Bad2 = Bad2 Int Double              is defining two arguments.
+---------------------------------------------------------------------------
+ To define the second invalid construction, we can do it in two ways:
+
+ type Good2 = Good2 Int Double
+ newtype Good2 = Good2 (Int,Double)
+===========================================================================
+
+
+
+Now to make the above defined     newtype MyInt     isomorphic, we can declare it an instance of a class.
+
+======================================================================
+ Example of making     MyInt     an instance of the     Ord     class
+----------------------------------------------------------------------
+ instance Ord MyInt where
+   compare (MyInt i) (MyInt j)
+     | odd  i && odd  j = compare i j
+     | even i && even j = compare i j
+     | even i           = LT
+     | otherwise        = GT
+----------------------------------------------------------------------
+ MyInt     also has to be made an instance of     Eq.
+======================================================================
+
+
+
+In recent versions of GHC, we can derive any class of the base type of the type synonym. E.g., for our type synonym     MyInt,     we can derive the     Num     class from the     Int     type to use arithmetic     ((+),(-),(*),(/))     functions.
+
+
+
+Pattern matching over new types is also the same as that over data types.
+
+===============================================================================================
+ Example of pattern matching over     newtype     to make constructor and destructor functions
+-----------------------------------------------------------------------------------------------
+ mkMyInt i = MyInt i
+ unMyInt (MyInt i) = i
+===============================================================================================

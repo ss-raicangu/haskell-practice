@@ -1,0 +1,37 @@
+========================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_advanced#Type_Synonyms
+----------------------------------------------------------------------------------------
+ Accessed at 2020-01-06T10:14:09+1300
+========================================================================================
+
+
+
+Type synonyms exist simply for convenience. These can be used to avoid repetitively typing very long type signatures, e.g.,     [(Double,Double,Double)].
+
+========================================
+ Example of defining a type synonym
+----------------------------------------
+ type List3D = [(Double,Double,Double)]
+========================================
+
+
+
+Cannot self-reference type synonyms. e.g.,     type BadType = Int -> BadType     will produce an "infinite type" error. For recursive types, we should use     newtype.
+
+===================================================
+ Example of defining a recursive type synonym
+---------------------------------------------------
+ newtype GoodType = MakeGoodType (Int -> GoodType)
+===================================================
+
+
+
+Type synonyms can have parameters. These parameters are also types.
+
+=============================================================================================================================================================================================================
+ Example of defining a parameterized type synonym
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ type List3D a = [(a,a,a)]
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ To make it similar to the first example     type List3D = [(Double,Double,Double)],     this type synonym can be written as     type List3D Double     which is equivalent to     [(Double,Double,Double)].
+=============================================================================================================================================================================================================

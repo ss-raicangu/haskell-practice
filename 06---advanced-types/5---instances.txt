@@ -1,0 +1,93 @@
+====================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_advanced#Instances
+------------------------------------------------------------------------------------
+ Accessed at 2020-01-08T15:39:30+1300
+====================================================================================
+
+
+
+In this section, we deal with the     Functor     class defined in the     Functor     module. This name comes from category theory, similar to monads. Functors map structures to structures.
+
+=========================================
+ Definition of the     Functor     class
+-----------------------------------------
+ class Functor f where
+     fmap :: (a -> b) -> f a -> f b
+=========================================
+
+
+
+fmap     is a generalization of     map     to arbitrary structures.     fmap     can be read as "function map". Lists in Haskell are instances of     Functor.     Another data type that can become an instance of     Functor     s is a binary tree.
+
+=================================================
+ Definition of the     BinTree     data type
+-------------------------------------------------
+ data BinTree a = Leaf a
+                | Branch (BinTree a) (BinTree a)
+=================================================
+
+
+
+===================================================
+ Making     BinTree     an instance of     Functor
+---------------------------------------------------
+ instance Functor BinTree where
+     fmap f (Leaf a) = Leaf (f a)
+     fmap f (Branch left right) =
+         Branch (fmap f left) (fmap f right)
+===================================================
+
+
+
+Before making a data type an instance of a class, we need to ensure that all types used in the data type are also instances of the same class. For example, to make our data type     BinTree      an instane of the     Eq     class,     we need to ensure that the type it requires     a     is also an instance of the     Eq     class.
+
+======================================================
+ Specifying a dependence in the instance declaration
+------------------------------------------------------
+ instance Eq a => Eq (BinTree a) where
+     Leaf a == Leaf b = a == b
+     Branch l r == Branch l' r' = l == l' && r == r'
+     _ == _ = False
+------------------------------------------------------
+ Eq a =>     is called the context of the definition.
+======================================================
+
+
+
+There are restrictions on what can appear in the context and declaration. One restriction for instance declarations is that they must contain type constructors on the right hand side.
+
+====================================================================================================================================================================================================================================================================
+ Example of restrictions in an instance declaration
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ class MyEq a where
+     myeq :: a -> a -> Bool
+
+ instance Eq a => MyEq a where
+     myeq = (==)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The problem with this definition is not immediately apparent unless we have the following definition:
+
+ instance MyEq a => Eq a where
+     (==) = myeq
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ What's happening here is that the compiler is performing endless reductions by trying to find out whether a type is an instance of     MyEq      and     Eq,     alternately. This would often be taken care of by the compiler by refusing the first declaration.
+====================================================================================================================================================================================================================================================================
+
+
+
+The above problem is called the closed-world assumption.
+
+==============================================================================================================================================================================
+ Another example of the closed-world assumption
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ class OnlyInts a where
+     foo :: a -> a -> Bool
+
+ instance OnlyInts Int where
+     foo = (==)
+
+ bar :: OnlyInts a => a -> Bool
+ bar = foo 5
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ The closed-world assumption here is that the only instance of     OnlyInts     is of     Int,     however, there could be an instance declaration of another type elsewhere.
+==============================================================================================================================================================================

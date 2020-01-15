@@ -1,0 +1,863 @@
+```````````````````````````````````````````````````````````````````````````````````````
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_advanced#Computations
+
+                      Accessed at 2020-01-06T13:36:22+1300
+_______________________________________________________________________________________
+
+
+
+________________________________________________________________________________
+                            Graph vertices and edges
+````````````````````````````````````````````````````````````````````````````````
+    So, all graphs have a set of vertices and a set of edges.
+
+    The set of vertices is an association list of type "[(Int, v)]". The type of 
+"v" can be anything but for our exercise, I"ll assume it is a "String". So, the 
+type of our vertex will be "(Int, String)". Therefore, 
+
+        Type of set of vertices = [(Int, String)]
+
+    The set of edges is a list of type "[(Int, Int, e)]". There are two 
+vertices' indices in the first two elements of the triple. Again, the type of 
+"e" is unnecessary so let's assume it is a "String". Through this, the type of 
+our edge will be "(Int, Int, String)". Therefore,
+
+        Type of set of edges    = [(Int, Int, String)]
+
+
+
+________________________________________________________________________________
+                              Graph representation
+````````````````````````````````````````````````````````````````````````````````
+    Now, let's create a sample graph from the following definition.
+
+        data Graph v e = Graph [(Int, v)] [(Int, Int, e)]
+
+        let sample = Graph 
+            [(1, "a"), (2, "b"), (3, "c"), (4, "d"), (5, "e")]
+            [(1, 3, "a--c"), (2, 4, "b--d"), 
+             (2, 3, "b--c"), (3, 4, "c--d"), 
+             (4, 5, "d--e")]
+
+          5
+           \
+        1   4
+         \ / \
+          3---2
+
+    These lists are always sorted, each vertex has a unique ID, and there is 
+at-most only one edge between two vertices.
+
+    However, due to multiple small mistakes [using (3, 2, "c--b") instead of 
+(2, 3, "b--c") as an edge; putting the newly renamed (2, 3, "b--c") after 
+(2, 4, "b--d")], the naive path search will not work exactly as expected, 
+taking more iterations than necessary.
+
+
+
+________________________________________________________________________________
+                              Naive path searching
+````````````````````````````````````````````````````````````````````````````````
+    The following (naive) algorithm can be used to try find paths between any 
+two specific vertices.
+
+        search :: Graph v e -> Int -> Int -> Maybe [Int]
+        search g@(Graph vl el) src dst
+            | src == dst = Just [src]
+            | otherwise  = search' el
+            where search' [] = Nothing
+                  search' ((u,v,_):es)
+                      | src == u  =
+                        case search g v dst of
+                          Just p  -> Just (u:p)
+                          Nothing -> search' es
+                      | otherwise = search' es
+
+    Using the following function call to find a path between vertex 2 and vertex 
+3.
+
+        =================================================
+        Iteration one
+        -------------------------------------------------
+        search sample 2 3
+
+        2 /= 3 therefore the first guard will be skipped.
+
+        search' [(1, 3, "a--c"), (2, 4, "b--d"), 
+                 (2, 3, "b--c"), (3, 4, "c--d"), 
+                 (4, 5, "d--e")]
+        =================================================
+
+        ======================================================================
+        Iteration two
+        ----------------------------------------------------------------------
+        [(1, 3, "a--c"), (2, 4, "b--d"), 
+         (2, 3, "b--c"), (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []             First condition evaluates to False.
+
+        search' ((1, 3, _) : [(2, 4, "b--d"), (2, 3, "b--c"), 
+                              (3, 4, "c--d"), (4, 5, "d--e")])
+
+        2 /= 1 therefore the first guard will be skipped.
+
+        search' [(2, 4, "b--d"), (2, 3, "b--c"), 
+                 (3, 4, "c--d"), (4, 5, "d--e")]
+        ======================================================================
+
+        ======================================================================
+        Iteration three
+        ----------------------------------------------------------------------
+        [(2, 4, "b--d"), 
+         (2, 3, "b--c"), 
+         (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((2, 4, _) : [(2, 3, "b--c"), (3, 4, "c--d"), (4, 5, "d--e")])
+
+        2 == 2 therefore call
+
+        search sample 4 3
+        ======================================================================
+
+        =================================================
+        Iteration three; Sub iteration one
+        -------------------------------------------------
+        4 /= 3 therefore the first guard will be skipped.
+
+        search' [(1, 3, "a--c"), (2, 4, "b--d"), 
+                 (2, 3, "b--c"), (3, 4, "c--d"), 
+                 (4, 5, "d--e")]
+        =================================================
+
+        ======================================================================
+        Iteration three; Sub iteration two
+        ----------------------------------------------------------------------
+        [(1, 3, "a--c"), (2, 4, "b--d"), 
+         (2, 3, "b--c"), (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []             First condition evaluates to False.
+
+        search' ((1, 3, _) : [(2, 4, "b--d"), (2, 3, "b--c"), 
+                              (3, 4, "c--d"), (4, 5, "d--e")])
+
+        4 /= 1 therefore the first guard will be skipped.
+
+        search' [(2, 4, "b--d"), (2, 3, "b--c"), 
+                 (3, 4, "c--d"), (4, 5, "d--e")]
+        ======================================================================
+
+        ======================================================================
+        Iteration three; Sub iteration three
+        ----------------------------------------------------------------------
+        [(2, 4, "b--d"), 
+         (2, 3, "b--c"), 
+         (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((2, 4, _) : [(2, 3, "b--c"), (3, 4, "c--d"), (4, 5, "d--e")])
+
+        4 /= 2 therefore the first guard will be skipped.
+
+        search' [(2, 3, "b--c"), (3, 4, "c--d"), (4, 5, "d--e")]
+        ======================================================================
+
+        ============================================================
+        Iteration three; Sub iteration four
+        ------------------------------------------------------------
+        [(2, 3, "b--c"), 
+         (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((2, 3, _) : [(3, 4, "c--d"), (4, 5, "d--e")])
+
+        4 /= 3 therefore the first guard will be skipped.
+
+        search' [(3, 4, "c--d"), (4, 5, "d--e")]
+        ============================================================
+
+        ============================================================
+        Iteration three; Sub iteration five
+        ------------------------------------------------------------
+        [(3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((3, 4, _) : [(4, 5, "d--e")])
+
+        4 /= 3 therefore the first guard will be skipped.
+
+        search' [(4, 5, "d--e")]
+        ============================================================
+
+        ============================================================
+        Iteration three; Sub iteration six
+        ------------------------------------------------------------
+        [(4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((4, 5, _) : [])
+
+        4 == 4 therefore call
+
+        search sample 5 3
+        ============================================================
+
+        ======================================================================
+        Iteration three; Sub iteration six; Sub sub iterations
+        ----------------------------------------------------------------------
+        This call will eventually lead to the value "Nothing". Therefore, this 
+        will eventually call
+
+        search' [(2, 3, "b--c"), (3, 4, "c--d"), (4, 5, "d--e")]
+        ======================================================================
+
+        ============================================================
+        Iteration four
+        ------------------------------------------------------------
+        [(2, 3, "b--c"), 
+         (3, 4, "c--d"), 
+         (4, 5, "d--e")] /= []   First condition evaluates to False.
+
+        search' ((2, 3, _) : [(3, 4, "c--d"), (4, 5, "d--e")])
+
+        2 == 2 therefore call
+
+        search sample 3 3
+        ============================================================
+
+        ====================================================
+        Iteration five
+        ----------------------------------------------------
+        3 == 3 therefore the value "Just [3]" is returned to
+
+        case search sample 3 3 of
+          Just [3] -> Just (2 : [3])
+          ...
+
+        Therefore, the function call
+
+            search sample 2 3
+
+        will return "Just [2,3]".
+        ====================================================
+
+    So, after using this algorithm, I can sort of conclude that it is in fact 
+not very efficient.
+
+
+
+________________________________________________________________________________
+         Using the "Failable" data type instead of the "Maybe" data type
+````````````````````````````````````````````````````````````````````````````````
+    If we want error messages, the "Maybe" data type will not suffice. To use 
+such error messages, we need to define another data type to hold error 
+messages. One example is
+
+        data Failable a = Success a | Fail String
+
+
+
+________________________________________________________________________________
+          Correcting a mistake with the sample graph before proceeding
+````````````````````````````````````````````````````````````````````````````````
+    The set of edges was not properly sorted when we were using the naive 
+algorithm.
+
+        let sample = Graph 
+            [(1, "a"), (2, "b"), (3, "c"), (4, "d"), (5, "e")]
+            [(1, 3, "a--c"), (2, 3, "b--c"), 
+             (2, 4, "b--d"), (3, 4, "c--d"), 
+             (4, 5, "d--e")]
+
+
+
+________________________________________________________________________________
+                 Using the "Failable" data type while searching
+````````````````````````````````````````````````````````````````````````````````
+    The following code works exactly the same as the naive implementation.
+
+        search2 :: Graph v e -> Int -> Int -> Failable [Int]
+        search2 g@(Graph vl el) src dst
+            | src == dst = Success [src]
+            | otherwise  = search' el
+            where search' [] = Fail "No path"
+                  search' ((u,v,_):es)
+                      | src == u  =
+                        case search2 g v dst of
+                          Success p -> Success (u:p)
+                          _         -> search' es
+                      | otherwise = search' es
+
+
+
+________________________________________________________________________________
+                 Finding all possible paths between two vertices
+````````````````````````````````````````````````````````````````````````````````
+    To return all possible paths, we can express a function which returns a list 
+of lists of vertices.
+
+        search3 :: Graph v e -> Int -> Int -> [[Int]]
+        search3 g@(Graph vl el) src dst
+            | src == dst = [[src]]
+            | otherwise  = search' el
+            where search' [] = []
+                  search' ((u,v,_):es)
+                      | src == u  =
+                           map (u:) (search3 g v dst) ++
+                           search' es
+                      | otherwise = search' es
+
+    Using the following function call to find all paths between vertex 2 and 
+vertex 3.
+
+   =============================================================================
+                                                                    ...........
+                                                                    !SECTION 1!
+                                                                    '''''''''''
+
+    search3 sample 2 3
+        | 2 /= 3
+        | search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                   (2, 4, "b--d"), (3, 4, "c--d"), 
+                   (4, 5, "d--e")]
+        where search' ((1, 3, _) : [(2, 3, "b--c"), (2, 4, "b--d"), 
+                                    (3, 4, "c--d"), (4, 5, "d--e")])
+                  | 2 /= 1
+                  | search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                             (3, 4, "c--d"), (4, 5, "d--e")]
+                  where search' ((2, 3, _) : [(2, 4, "b--d"), 
+                                              (3, 4, "c--d"), 
+                                              (4, 5, "d--e")]
+                            | 2 == 2  =
+                                 map (2:) (search3 sample 3 3) ++
+                                 search' [(2, 4, "b--d"), 
+                                          (3, 4, "c--d"), 
+                                          (4, 5, "d--e")]
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 2!
+                                                                    '''''''''''
+
+    map (2:) (search3 sample 3 3) ++ search' [(2, 4, "b--d"), 
+                                              (3, 4, "c--d"), 
+                                              (4, 5, "d--e")]
+
+    search3 sample 3 3
+        | 3 == 3 = [[3]]
+
+    map (2:) [[3]]
+        [2:[3]]
+        [[2, 3]]
+
+
+    search' [(2, 4, "b--d"), 
+             (3, 4, "c--d"), 
+             (4, 5, "d--e")]
+    where search' ((2, 4, _) : [(3, 4, "c--d"), (4, 5, "d--e")])
+              | 2 == 2  =
+                   map (2:) (search3 sample 4 3) ++
+                   search' [(3, 4, "c--d"), (4, 5, "d--e")]
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 3!
+                                                                    '''''''''''
+
+    map (2:) (search3 sample 4 3) ++ search' [(3, 4, "c--d"), (4, 5, "d--e")]
+
+    search3 sample 4 3
+        | 4 /= 3
+        | search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                   (2, 4, "b--d"), (3, 4, "c--d"), 
+                   (4, 5, "d--e")]
+        where search' ((1, 3, _) : [(2, 3, "b--c"), (2, 4, "b--d"), 
+                                    (3, 4, "c--d"), (4, 5, "d--e")])
+                  | 4 /= 1
+                  | search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                             (3, 4, "c--d"), (4, 5, "d--e")]
+                  where search' ((2, 3, _) : [(2, 4, "b--d"), 
+                                              (3, 4, "c--d"), 
+                                              (4, 5, "d--e")])
+                            | 4 /= 2
+                            | search' [(2, 4, "b--d"), 
+                                       (3, 4, "c--d"), 
+                                       (4, 5, "d--e")]
+                            where search' ((2, 4, _) : [(3, 4, "c--d"), 
+                                                        (4, 5, "d--e")])
+                                      | 4 /= 2
+                                      | search' [(3, 4, "c--d"), 
+                                                 (4, 5, "d--e")]
+                                      where search' ((3, 4, _) : 
+                                                     [(4, 5, "d--e")])
+                                                | 4 /= 3
+                                                | search' [(4, 5, "d--e")]
+                                                where search' ((4, 5, _) : [])
+                                                          | 4 == 4  =
+                                                               map 
+                                                                   (4:) 
+                                                                   (search3 
+                                                                    sample 5 3) 
+                                                               ++
+                                                               search' []
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 4!
+                                                                    '''''''''''
+
+    map (4:) (search3 sample 5 3) ++ search' []
+
+    search3 sample 5 3
+        | 5 /= 3
+        | search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                   (2, 4, "b--d"), (3, 4, "c--d"), 
+                   (4, 5, "d--e")]
+        where search' ((1, 3, _) : [(2, 3, "b--c"), (2, 4, "b--d"), 
+                                    (3, 4, "c--d"), (4, 5, "d--e")])
+                  | 5 /= 1
+                  | search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                             (3, 4, "c--d"), (4, 5, "d--e")]
+                  where search' ((2, 3, _) : [(2, 4, "b--d"), 
+                                              (3, 4, "c--d"), 
+                                              (4, 5, "d--e")])
+                            | 5 /= 2
+                            | search' [(2, 4, "b--d"), 
+                                       (3, 4, "c--d"), 
+                                       (4, 5, "d--e")]
+                            where search' ((2, 4, _) : [(3, 4, "c--d"), 
+                                                        (4, 5, "d--e")])
+                                      | 5 /= 2
+                                      | search' [(3, 4, "c--d"), 
+                                                 (4, 5, "d--e")]
+                                      where search' ((3, 4, _) : 
+                                                     [(4, 5, "d--e")])
+                                                | 5 /= 3
+                                                | search' [(4, 5, "d--e")]
+                                                where search' ((4, 5, _) : [])
+                                                          | 5 /= 4
+                                                          | search' []
+                                                          where search' [] = []
+
+    map (4:) []
+        []
+
+
+    search' []
+    where search' [] = []
+
+
+    [] ++ [] = []
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 5!
+                                                                    '''''''''''
+
+    Continuing from section 3
+        map (2:) (search3 sample 4 3) ++ 
+        search' [(3, 4, "c--d"), (4, 5, "d--e")]
+
+
+    map (2:) []
+        []
+
+
+    !REFERENCE! search3 sample 2 3
+    !REFERENCE!     .
+    !REFERENCE!     .
+    !REFERENCE!     .
+                    search' [(3, 4, "c--d"), (4, 5, "d--e")]
+                    where search' ((3, 4, _) : [(4, 5, "d--e")])
+                              | 2 /= 3
+                              | search' [(4, 5, "d--e")]
+                              where search' ((4, 5, _) : [])
+                                        | 2 /= 4
+                                        | search' []
+                                        where search' [] = []
+
+
+    [] ++ [] = []
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 6!
+                                                                    '''''''''''
+
+    Continuing from section 2
+        map (2:) (search3 sample 3 3) ++ search' [(2, 4, "b--d"), 
+                                                  (3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+
+
+    !REFERENCE!     map (2:) [[3]]
+    !REFERENCE!         [2:[3]]
+    !REFERENCE!         [[2, 3]]
+
+    [[2, 3]] ++ [] = [[2, 3]]
+   =============================================================================
+
+
+
+________________________________________________________________________________
+                        Defining the "Computation" class
+````````````````````````````````````````````````````````````````````````````````
+    We can combine all the commonalities in the previously viewed algorithms 
+into a class. There seems to be three common attributes:
+
+        1. We need a way to represent success/failure.
+
+        2. We need a way to combine two successes (in "search" and "search2", 
+           the first success is chosen; in "search3", the successes are combined 
+           together).
+
+        3. We need a way to augment a previous success with some new value.
+
+    This can be represented by the following class.
+
+        class Computation c where
+            success :: a -> c a
+            failure :: String -> c a
+            augment :: c a -> (a -> c b) -> c b
+            combine :: c a -> c a -> c a
+
+    "c" is an instance of the class "Computation" if it provides a definition 
+for the four functions: success, failure, augment, combine. For the "augment" 
+function, the type signature "c a -> (a -> a) -> c a" could be used since the 
+"a" type is simply "[Int]" for all three search functions: search, search2, 
+search3.
+
+    We can now instantiate the data types used in our three search functions: 
+search -> Maybe, search2 -> Failable, search3 -> [].
+
+        instance Computation Maybe where
+            success = Just
+            failure = const Nothing
+            augment (Just x) f = f x
+            augment Nothing  _ = Nothing
+            combine Nothing y = y
+            combine x _ = x
+
+
+        !REFERENCE! data Failable a = Success a | Fail String
+
+        instance Computation Failable where
+            success = Success
+            failure = Fail
+            augment (Success x) f = f x
+            augment (Fail s) _ = Fail s
+            combine (Fail _) y = y
+            combine x _ = x
+
+
+        instance Computation [] where
+            success a = [a]
+            failure = const []
+            augment l f = concat (map f l)
+            combine = (++)
+
+    Finally, by using instances of the "Computation" class, we can create a 
+final version of the search algorithm.
+
+        searchAll g@(Graph vl el) src dst
+            | src == dst = success [src]
+            | otherwise  = search' el
+            where search' [] = failure "no path"
+                  search' ((u,v,_):es)
+                      | src == u  = (searchAll g v dst `augment`
+                                     (success . (u:)))
+                                    `combine` search' es
+                      | otherwise = search' es
+
+
+
+________________________________________________________________________________
+                     A test run of the "searchAll" algorithm
+````````````````````````````````````````````````````````````````````````````````
+    Like the previous run, we want to find all paths between vertex 2 and vertex 
+3 from the sample graph.
+
+   =============================================================================
+                                                                    ...........
+                                                                    !SECTION 1!
+                                                                    '''''''''''
+    searchAll sample 2 3
+        | 2 /= 3
+        | search' [(1,3,"a--c"),
+                   (2,3,"b--c"),
+                   (2,4,"b--d"),
+                   (3,4,"c--d"),
+                   (4,5,"d--e")]
+        where search' ((1,3,_) : [(2,3,"b--c"),
+                                  (2,4,"b--d"),
+                                  (3,4,"c--d"),
+                                  (4,5,"d--e")])
+                  | 2 /= 1
+                  | search' [(2,3,"b--c"),
+                             (2,4,"b--d"),
+                             (3,4,"c--d"),
+                             (4,5,"d--e")]
+                  where search' ((2,3,_) : [(2,4,"b--d"),
+                                            (3,4,"c--d"),
+                                            (4,5,"d--e")])
+                            | 2 == 2  = (searchAll sample 3 3 `augment`
+                                         (success . (2:)))
+                                        `combine` search' [(2,4,"b--d"),
+                                                           (3,4,"c--d"),
+                                                           (4,5,"d--e")]
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 2!
+                                                                    '''''''''''
+    (searchAll sample 3 3 `augment` (success . (2:)))
+    `combine` search' [(2,4,"b--d"),(3,4,"c--d"),(4,5,"d--e")]
+
+
+    LHS = (searchAll sample 3 3 `augment` (success . (2:)))
+    RHS = search' [(2,4,"b--d"),(3,4,"c--d"),(4,5,"d--e")]
+
+    Final = LHS `combine` RHS
+
+
+    Solving LHS = (searchAll sample 3 3 `augment` (success . (2:)))
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    searchAll sample 3 3
+        | 3 == 3 = success [3]
+                 = [[3]]
+
+
+    ([[3]] `augment` (success . (2:)))
+        concat (map (success . (2:)) [[3]])
+        concat ([(success . (2:)) [3]])
+        concat ([(success) (2:[3])])
+        concat ([success [2,3]])
+        concat [[[2,3]]]
+        [[2,3]]
+
+
+    Solving RHS = search' [(2,4,"b--d"),(3,4,"c--d"),(4,5,"d--e")]
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! searchAll sample 2 3
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+                search' [(2,4,"b--d"),
+                         (3,4,"c--d"),
+                         (4,5,"d--e")]
+                where search' ((2,4,"b--d") : [(3,4,"c--d"),
+                                               (4,5,"d--e")])
+                          | 2 == 2  = (searchAll sample 4 3 `augment`
+                                       (success . (2:)))
+                                      `combine` search' [(3,4,"c--d"),
+                                                         (4,5,"d--e")]
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 3!
+                                                                    '''''''''''
+    (searchAll sample 4 3 `augment` (success . (2:)))
+    `combine` search' [(3,4,"c--d"),(4,5,"d--e")]
+
+
+    LHS = (searchAll sample 4 3 `augment` (success . (2:)))
+    RHS = search' [(3,4,"c--d"),(4,5,"d--e")]
+
+    LHS `combine` RHS
+
+
+    Solving LHS = (searchAll sample 4 3 `augment` (success . (2:)))
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    searchAll sample 4 3
+        | 4 /= 3
+        | search' [(1,3,"a--c"),
+                   (2,3,"b--c"),
+                   (2,4,"b--d"),
+                   (3,4,"c--d"),
+                   (4,5,"d--e")]
+        where search' ((1,3,_) : [(2,3,"b--c"),
+                                  (2,4,"b--d"),
+                                  (3,4,"c--d"),
+                                  (4,5,"d--e")])
+                  | 4 /= 1
+                  | search' [(2,3,"b--c"),
+                             (2,4,"b--d"),
+                             (3,4,"c--d"),
+                             (4,5,"d--e")]
+                  where search' ((2,3,_) : [(2,4,"b--d"),
+                                            (3,4,"c--d"),
+                                            (4,5,"d--e")])
+                            | 4 /= 2
+                            .
+                            .
+                            .
+                            | search' [(4,5,"d--e")]
+                            where search' ((4,5,_) : [])
+                                      | 4 == 4  = (searchAll sample 5 3 
+                                                   `augment`
+                                                   (success . (4:)))
+                                                  `combine` search' []
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 4!
+                                                                    '''''''''''
+    (searchAll sample 5 3 `augment` (success . (4:)))
+    `combine` search' []
+
+
+    LHS = (searchAll sample 5 3 `augment` (success . (4:)))
+    RHS = search' []
+
+    LHS `combine` RHS
+
+
+    Solving LHS = (searchAll sample 5 3 `augment` (success . (4:)))
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    searchAll sample 5 3
+        | 5 /= 3
+        | search' [(1,3,"a--c"),
+                   (2,3,"b--c"),
+                   (2,4,"b--d"),
+                   (3,4,"c--d"),
+                   (4,5,"d--e")]
+        where search' ((1,3,_) : [(2,3,"b--c"),
+                                  (2,4,"b--d"),
+                                  (3,4,"c--d"),
+                                  (4,5,"d--e")])
+                  | 5 /= 1
+                  | search' [(2,3,"b--c"),
+                             (2,4,"b--d"),
+                             (3,4,"c--d"),
+                             (4,5,"d--e")]
+                  where search' ((2,3,_) : [(2,4,"b--d"),
+                                            (3,4,"c--d"),
+                                            (4,5,"d--e")])
+                            | 5 /= 2
+                            .
+                            .
+                            .
+                            | search' []
+                            where search' [] = []
+
+
+    Solving RHS = search' []
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+    search' [] = []
+
+
+    Solving LHS `combine` RHS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    [] `combine` []
+    (++) [] []
+    []
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 5!
+                                                                    '''''''''''
+    Going back to section 3
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! (searchAll sample 4 3 `augment` (success . (2:)))
+    !REFERENCE! `combine` search' [(3,4,"c--d"),(4,5,"d--e")]
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! Solving LHS = (searchAll sample 4 3 `augment` (success . (2:)))
+    !REFERENCE! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE!                       | search' [(4,5,"d--e")]
+    !REFERENCE!                       where search' ((4,5,_) : [])
+    !REFERENCE!                                 | 4 == 4  = 
+    !REFERENCE!                                     (searchAll sample 5 3 
+    !REFERENCE!                                      `augment`
+    !REFERENCE!                                      (success . (4:)))
+    !REFERENCE!                                     `combine` search' []
+
+    LHS was solved to be [].
+
+
+    Solving RHS = search' [(3,4,"c--d"),(4,5,"d--e")]
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! searchAll sample 2 3
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+                | search' [(3,4,"c--d"),(4,5,"d--e")]
+                where search' ((3,4,_) : [(4,5,"d--e")])
+                          | 2 /= 3
+                          | search' [(4,5,"d--e")]
+                          where search' ((4,5,"d--e") : [])
+                                    | 2 /= 4
+                                    | search' []
+                                    where search' [] = []
+
+
+    Solving LHS `combine` RHS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    [] `combine` []
+    (++) [] []
+    []
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 6!
+                                                                    '''''''''''
+    Continuing from section 2
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! (searchAll sample 3 3 `augment` (success . (2:)))
+    !REFERENCE! `combine` search' [(2,4,"b--d"),(3,4,"c--d"),(4,5,"d--e")]
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! Solving LHS = (searchAll sample 3 3 `augment` (success . (2:)))
+    !REFERENCE! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! [[2,3]]
+    !REFERENCE!
+    !REFERENCE!
+    !REFERENCE! Solving RHS = search' [(2,4,"b--d"),(3,4,"c--d"),(4,5,"d--e")]
+    !REFERENCE! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! .
+    !REFERENCE! search' [(2,4,"b--d"),
+    !REFERENCE!          (3,4,"c--d"),
+    !REFERENCE!          (4,5,"d--e")]
+    !REFERENCE! where search' ((2,4,"b--d") : [(3,4,"c--d"),
+    !REFERENCE!                                (4,5,"d--e")])
+    !REFERENCE!           | 2 == 2  = (searchAll sample 4 3 `augment`
+    !REFERENCE!                        (success . (2:)))
+    !REFERENCE!                       `combine` search' [(3,4,"c--d"),
+    !REFERENCE!                                          (4,5,"d--e")]
+
+    RHS was solved to be [].
+
+
+    Solving LHS `combine` RHS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    [[2,3]] `combine` []
+    (++) [[2,3]] []
+    [[2,3]]
+
+   -----------------------------------------------------------------------------
+                                                                    ...........
+                                                                    !SECTION 7!
+                                                                    '''''''''''
+    Therefore, the final result is [[2,3]].
+   =============================================================================
+
+    Did I learn anything new? Not really. Should have tried with a different 
+graph.
+
+
+
+________________________________________________________________________________
+                                   Conclusion
+````````````````````````````````````````````````````````````````````````````````
+    The "Computation" class is closely related to the concept of monads. The 
+next chapter to read after this is the "Monads" chapter. The only differences 
+are:
+
+        1. Function names change from "success" -> "return", 
+                                      "failure" -> "fail", and
+                                      "augment" -> ">>=" read as bind.
+
+        2. The "combine" function is not included by default. It is, however, 
+           included in the "MonadPlus" class.

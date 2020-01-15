@@ -1,0 +1,250 @@
+________________________________________________________________________________
+                 Finding all possible paths between two vertices
+````````````````````````````````````````````````````````````````````````````````
+    To return all possible paths, we can express a function which returns a list 
+of lists of vertices.
+
+        search3 :: Graph v e -> Int -> Int -> [[Int]]
+        search3 g@(Graph vl el) src dst
+            | src == dst = [[src]]
+            | otherwise  = search' el
+            where search' [] = []
+                  search' ((u,v,_):es)
+                      | src == u  =
+                           map (u:) (search3 g v dst) ++
+                           search' es
+                      | otherwise = search' es
+
+    Using the following function call to find a path between vertex 2 and vertex 
+3.
+
+        =============================================
+        Iteration one
+        ---------------------------------------------
+        search3 sample 2 3
+
+            [
+            ]
+        ---------------------------------------------
+        2 /= 3 therefore first guard will be skipped.
+
+        search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                 (2, 4, "b--d"), (3, 4, "c--d"), 
+                 (4, 5, "d--e")]
+        =============================================
+
+        =====================================================
+        Iteration one; Sub-iteration one
+        -----------------------------------------------------
+        search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                 (2, 4, "b--d"), (3, 4, "c--d"), 
+                 (4, 5, "d--e")]
+
+            [
+                search3 sample 2 3
+            ]
+        -----------------------------------------------------
+        search' ((1, 3, _) : [(2, 3, "b--c"), (2, 4, "b--d"), 
+                              (3, 4, "c--d"), (4, 5, "d--e")]
+
+        2 /= 1 therefore first guard will be skipped.
+
+        search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                 (3, 4, "c--d"), (4, 5, "d--e")]
+        =====================================================
+
+        ==========================================================
+        Iteration one; Sub-iteration two
+        ----------------------------------------------------------
+        search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                 (3, 4, "c--d"), (4, 5, "d--e")]
+
+            [
+                search3 sample 2 3
+            ]
+        ----------------------------------------------------------
+        search' ((2, 3, "b--c") : [(2, 4, "b--d"), (3, 4, "c--d"), 
+                                   (4, 5, "d--e")])
+
+        2 == 2 therefore call
+
+        map (2:) (search3 sample 3 3) ++ search' [(2, 4, "b--d"), 
+                                                  (3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+        ==========================================================
+
+        =========================================================
+        Iteration one; Sub-iteration two; Sub-sub-iteration one
+        ---------------------------------------------------------
+        map (2:) (search3 sample 3 3) ++ search' [(2, 4, "b--d"), 
+                                                  (3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+
+            [
+                search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                         (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search3 sample 2 3
+            ]
+        ---------------------------------------------------------
+        LHS = map (2:) (search3 sample 3 3)
+
+        RHS = search' [(2, 4, "b--d"), 
+                       (3, 4, "c--d"), 
+                       (4, 5, "d--e")]
+
+        Solving LHS first.
+
+            search3 sample 3 3
+
+                3 == 3 therefore result is [[3]].
+
+            map (2:) [[3]]
+
+                Result is [[2, 3]].
+
+        LHS = [[2, 3]]
+        =========================================================
+
+        ======================================================================
+        Iteration one; Sub-iteration two; Sub-sub-iteration two
+        ----------------------------------------------------------------------
+        Solving RHS = search' [(2, 4, "b--d"), (3, 4, "c--d"), (4, 5, "d--e")]
+
+            [
+                search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                         (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search3 sample 2 3
+            ]
+        ----------------------------------------------------------------------
+        search' ((2, 4, "b--d") : [(3, 4, "c--d"), (4, 5, "d--e")])
+
+        2 == 2 therefore call
+
+        map (2:) (search3 sample 4 3) ++ search' [(3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+        ======================================================================
+
+        ========================================================================
+        Iteration one; Sub-iteration two; Sub-sub-iteration three
+        ------------------------------------------------------------------------
+        map (2:) (search3 sample 4 3) ++ search' [(3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+
+            [
+                search' [(2, 4, "b--d"), (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                         (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search3 sample 2 3
+            ]
+        ------------------------------------------------------------------------
+        LHS = map (2:) (search3 sample 4 3)
+
+        RHS = search' [(3, 4, "c--d"), (4, 5, "d--e")]
+
+        Solving LHS first.
+
+            search3 sample 4 3
+
+                4 /= 3 therefore first guard will be skipped.
+
+                search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                         (2, 4, "b--d"), (3, 4, "c--d"), 
+                         (4, 5, "d--e")]
+
+                Skipping until edge set is [(4, 5, "d--e")].
+
+                search' [(4, 5, "d--e")]
+
+                    search' ((4, 5, "d--e") : [])
+
+                    4 == 4 therefore call
+
+                    map (4:) (search3 sample 5 3) ++ search' []
+
+                        LHS = map (4:) (search3 sample 5 3)
+
+                        RHS = search' []
+
+                        Solving LHS first.
+
+                            search3 sample 5 3
+
+                                5 /= 3 therefore first guard will be skipped.
+
+                                search' [(1, 3, "a--c"), (2, 3, "b--c"), 
+                                         (2, 4, "b--d"), (3, 4, "c--d"), 
+                                         (4, 5, "d--e")]
+
+                                Skipping all cases as none start at 5, therefore 
+                                the result is [].
+
+                            map (4:) []
+
+                                Result is [].
+
+                        LHS = []
+
+                        Solving RHS = search' []
+
+                            Result is [].
+
+                        RHS = []
+
+                    Result is [].
+
+                Result is [].
+
+            Result is [].
+
+        LHS = []
+        ========================================================================
+
+        =================================================================
+        Iteration one; Sub-iteration two; Sub-sub-iteration four
+        -----------------------------------------------------------------
+        Solving RHS = search' [(3, 4, "c--d"), (4, 5, "d--e")]
+
+            [
+                search' [(2, 4, "b--d"), (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search' [(2, 3, "b--c"), (2, 4, "b--d"), 
+                         (3, 4, "c--d"), (4, 5, "d--e")], 
+
+                search3 sample 2 3
+            ]
+        -----------------------------------------------------------------
+        search' ((3, 4, "c--d") : [(4, 5, "d--e")])
+
+        2 /= 3 therefore first guard will be skipped.
+
+        search' [(4, 5, "d--e)]
+
+            search' ((4, 5, "d--e") : [])
+
+            2 /= 4 therefore first guard will be skipped.
+
+            search' []
+
+                Result is [].
+
+            Result is [].
+
+        RHS = []
+        =================================================================
+
+        =========================================================
+        Iteration one; Sub-iteration two; Sub-sub-iteration five
+        ---------------------------------------------------------
+        map (2:) (search3 sample 4 3) ++ search' [(3, 4, "c--d"), 
+                                                  (4, 5, "d--e")]
+
+            [] ++ [] = []
+        =========================================================
+
+        =============================
+        !FIXME! Oops, I got confused.
+        =============================

@@ -1,0 +1,182 @@
+================================================================================
+ https://en.wikibooks.org/wiki/Yet_Another_Haskell_Tutorial/Type_advanced#Kinds
+--------------------------------------------------------------------------------
+ Accessed at 2020-01-13T05:07:56+1300
+================================================================================
+
+    There are different types available in Haskell: 
+
+        1. Simple (e.g., Int, Char, Double)
+
+        2. Type Constructors (e.g., Maybe)
+
+              (a) These take a type (e.g., Char) and return a new type (e.g., 
+                  Maybe Char).
+
+              (b) Another type constructor is the list constructor "[]". These 
+                  take a type (e.g., Int) and return another type (e.g., [Int]).
+
+              (c) A more complex type constructor is the function arrow "->", 
+                  which takes two types (e.g., Int, Bool) and returns a new 
+                  function type (Int -> Bool).
+
+    These types have their own types. For example, a type like "Int" can have a 
+base type, for example, "Number". Types like "Maybe" take a basic type and 
+return something of a basic type. These types of types are called kinds.
+
+    Basic types are of kind "*". A thing of kind "*" is something which can have 
+an actual value. "->" is a single kind constructor, with which we can build more 
+complex kinds.
+
+========================================
+                 ......................
+                 !Kind of type "Maybe"!
+                 ''''''''''''''''''''''
+     The "Maybe" type takes something 
+ of kind "*" and produces something of 
+ kind "*". Thus, the kind of type 
+ "Maybe" is "* -> *".
+========================================
+
+========================================
+                  .....................
+                  !Kind of type "Pair"!
+                  '''''''''''''''''''''
+----------------------------------------
+ data Pair a b = Pair a b
+----------------------------------------
+
+     The data type above is a type 
+ constructor which takes two arguments 
+ of kind "*" and produces a type of 
+ kind of "*". Thus, the kind of Pair is 
+ "* -> (* -> *)".
+
+     Since, this is right-associative, 
+ we can simplify this to "* -> * -> *".
+
+========================================
+
+    Working with a slightly stranger data type now.
+
+========================================
+    ...................................
+    !Definition of a Strange data type!
+    '''''''''''''''''''''''''''''''''''
+ data Strange c a b =
+     MkStrange (c a) (c b)
+
+----------------------------------------
+
+     "c" is a constructor. This data 
+ type pairs both "a" and "b", held 
+ within the constructor argument.
+
+----------------------------------------
+
+     "c" has kind "* -> *". This can be 
+ inferred from "a" and "b" having the 
+ kind "*". Thus, the kind of "Strange" 
+ is "(* -> *) -> * -> * -> *".
+
+========================================
+
+    One thing we need to remember is that "a" and "b" can have another kind "k". 
+So, how do we know that the kind is "*"? We don't. The compiler-inferred kind of 
+"Strange" is actually "(k -> *) -> k -> k -> *". But we assume "k = *" for 
+simplicity.
+
+    GHC has extensions that allow us to specify the kind of constructors 
+directly.
+
+========================================
+       ................................
+       !Example of specifying the kind!
+       ''''''''''''''''''''''''''''''''
+ data Strange (c :: (* -> *) -> *) a b
+     = MkStorage (c a) (c b)
+
+========================================
+
+    We can perform partial application using kinds, similar to functions.
+
+========================================
+       ................................
+       !Example of partial application!
+       ''''''''''''''''''''''''''''''''
+ type MaybePair = Strange Maybe
+
+----------------------------------------
+
+ Remember the definition of Strange: 
+     data Strange c a b
+
+----------------------------------------
+
+ In our type, "c" is equal to the type 
+ constructor "Maybe".
+
+----------------------------------------
+
+ Therefore, the above type "MaybePair" 
+ performs partial application because 
+ we did not provide the last two 
+ arguments---"a", "b".
+
+----------------------------------------
+
+ The kind of type "MaybePair" is 
+ "* -> * -> *".
+
+----------------------------------------
+
+ The following type definitions are 
+ also acceptable:
+
+     type MaybePair1 a
+         = Strange Maybe a
+
+     type MaybePair2 a b
+         = Strange Maybe a b
+
+----------------------------------------
+
+ These types are not identical based on 
+ Haskell's type system. The difference 
+ being that you cannot provide less 
+ types than the number of arguments 
+ given.
+
+----------------------------------------
+
+ For example, these definitions are 
+ valid:
+
+     type MaybePair00 = MaybePair
+     type MaybePair01 = MaybePair Int
+     type MaybePair02 =
+         MaybePair Int Double
+
+     type MaybePair11 = MaybePair1 Int
+     type MaybePair12 =
+         MaybePair1 Int Double
+
+     type MaybePair22 =
+         MaybePair2 Int Double
+
+----------------------------------------
+
+ But these definitions are not:
+
+     type MaybePair10 = MaybePair1
+
+     type MaybePair20 = MaybePair2
+     type MaybePair21 = MaybePair2 Int
+
+----------------------------------------
+
+ To put it simply, type constructors 
+ can't be partially applied on type 
+ synonyms.
+
+========================================
